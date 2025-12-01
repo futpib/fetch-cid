@@ -36,5 +36,8 @@
     "env-paths": "^3.0.0",
     "p-memoize": "^8.0.0"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "packageManager": "yarn@4.11.0"
 }
