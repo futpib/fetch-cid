@@ -110,22 +110,10 @@ const cachedReallyFetchCid = pMemoize(reallyFetchCid, {
 	cacheKey: ([ cid ]) => cid,
 });
 
-export async function fetchCid(cidOrPath: string, options?: FetchCidOptions): Promise<AsyncIterable<Uint8Array>> {
+export async function fetchCid(cid: string, options?: FetchCidOptions): Promise<AsyncIterable<Uint8Array>> {
 	const resolvedOptions = { ...defaultOptions, ...options };
 
-	if (cidOrPath.includes('/')) {
-		const file = await fsPromises.open(cidOrPath, 'r');
-
-		const stream = file.readableWebStream() as ReadableStream<Uint8Array>;
-
-		const streamWithClose = readableWebStreamOnFinish(stream, () => {
-			void file.close();
-		});
-
-		return streamWithClose;
-	}
-
-	const [ readable, unused ] = await cachedReallyFetchCid(cidOrPath, resolvedOptions);
+	const [ readable, unused ] = await cachedReallyFetchCid(cid, resolvedOptions);
 	await unused?.cancel();
 	return readable;
 }
