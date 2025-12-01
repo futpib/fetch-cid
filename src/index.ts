@@ -3,7 +3,7 @@ import path from 'node:path';
 import pMemoize from 'p-memoize';
 import envPaths from 'env-paths';
 
-const paths = envPaths('fetch-cid');
+const paths = envPaths('fetch-cid.futpib.github.io');
 
 function readableWebStreamOnFinish<T>(readableWebStream: ReadableStream<T>, onFinish: () => void): ReadableStream<T> {
 	const reader = readableWebStream.getReader();
@@ -84,7 +84,7 @@ class FsCache {
 	}
 
 	private get _basePath() {
-		return path.join(paths.cache, 'fetchCid');
+		return paths.cache;
 	}
 
 	private _getKeyPath(key: string) {
@@ -92,16 +92,27 @@ class FsCache {
 	}
 }
 
-async function reallyFetchCid(cid: string): Promise<[ ReadableStream<Uint8Array>, ReadableStream<Uint8Array> ]> {
-	const response = await fetch('https://ipfs.io/ipfs/' + cid);
+export type FetchCidOptions = {
+	ipfsBaseUrl?: string;
+};
+
+const defaultOptions: Required<FetchCidOptions> = {
+	ipfsBaseUrl: 'https://ipfs.io/ipfs/',
+};
+
+async function reallyFetchCid(cid: string, options: Required<FetchCidOptions>): Promise<[ ReadableStream<Uint8Array>, ReadableStream<Uint8Array> ]> {
+	const response = await fetch(options.ipfsBaseUrl + cid);
 	return response.body!.tee();
 }
 
 const cachedReallyFetchCid = pMemoize(reallyFetchCid, {
 	cache: new FsCache(),
+	cacheKey: ([ cid ]) => cid,
 });
 
-export async function fetchCid(cidOrPath: string): Promise<AsyncIterable<Uint8Array>> {
+export async function fetchCid(cidOrPath: string, options?: FetchCidOptions): Promise<AsyncIterable<Uint8Array>> {
+	const resolvedOptions = { ...defaultOptions, ...options };
+
 	if (cidOrPath.includes('/')) {
 		const file = await fsPromises.open(cidOrPath, 'r');
 
@@ -114,7 +125,7 @@ export async function fetchCid(cidOrPath: string): Promise<AsyncIterable<Uint8Ar
 		return streamWithClose;
 	}
 
-	const [ readable, unused ] = await cachedReallyFetchCid(cidOrPath);
+	const [ readable, unused ] = await cachedReallyFetchCid(cidOrPath, resolvedOptions);
 	await unused?.cancel();
 	return readable;
 }
