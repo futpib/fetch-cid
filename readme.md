@@ -1,17 +1,29 @@
-# TODO
+# @futpib/fetch-cid
 
-> TODO
+> Fetch IPFS content by CID with filesystem caching
 
-[![Coverage Status](https://coveralls.io/repos/github/futpib/TODO/badge.svg?branch=master)](https://coveralls.io/github/futpib/TODO?branch=master)
-
-## Example
-
-```js
-// TODO
-```
+[![Coverage Status](https://coveralls.io/repos/github/futpib/fetch-cid/badge.svg?branch=master)](https://coveralls.io/github/futpib/fetch-cid?branch=master)
 
 ## Install
 
 ```
-yarn add --dev TODO
+yarn add @futpib/fetch-cid
+```
+
+## Example
+
+```js
+import { fetchCid } from '@futpib/fetch-cid';
+
+// Fetch by CID (cached to ~/.cache/fetch-cid.futpib.github.io/)
+const stream = await fetchCid('bafybeicb3qajmwy6li7hche2nkucvytaxcyxhwhphmi73tgydjzmyoqoda');
+
+for await (const chunk of stream) {
+  console.log(chunk);
+}
+
+// Custom IPFS gateway
+const stream2 = await fetchCid('bafybeicb3qajmwy6li7hche2nkucvytaxcyxhwhphmi73tgydjzmyoqoda', {
+  ipfsBaseUrl: 'https://cloudflare-ipfs.com/ipfs/',
+});
 ```
